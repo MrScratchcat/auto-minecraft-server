@@ -1,0 +1,48 @@
+sudo apt update 
+sudo apt upgrade -y
+sudo apt install openjdk-18-jdk wget dialog -y
+continue=0
+cmd=(dialog --menu "Please Select the version you want to install:" 22 76 16)
+options=(
+1 "Version 1.19.2"
+2 "Version 1.18.2"
+3 "Version 1.17.1"
+4 "Version 1.16.5"
+)
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+    case $choice in
+    1)
+        #1.19.2
+        continue=1
+        wget -O server.jar https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
+        ;;
+    2)
+        #1.18.2
+        continue=1
+        wget -O server.jar https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
+        ;;
+    3)
+        #1.17.1
+        continue=1
+        wget -O server.jar https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
+        ;;
+    4)
+        #1.16.5
+        continue=1
+        wget -O server.jar https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar
+        ;;
+    esac
+done
+if [ $continue -eq 0 ]; then
+    echo "Geen keuze gemaakt, stop script" 
+    exit 1
+else
+    sudo chmod +x minecraft_server_downloader.sh
+    echo java -Xmx6000M -Xms6000M -jar server.jar nogui pause>> start.bat
+    echo eula=true > eula.txt
+    sudo chmod +x start.bat
+    sudo ./start.bat
+fi
