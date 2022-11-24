@@ -1,5 +1,4 @@
 # auto-minecraft-server
 this script is for ubuntu server and ubuntu desktop and i think that it can run on more linux distro's as long it is debian based 
 
-
-to run the script do: bash minecraft_server_downloader or sudo ./minecraft_server_downloader
+put the scrip in a folder where you want your minecraft server to be in and to activate the server creator you need to put in this command: bash minecraft_server_creator
