@@ -98,7 +98,7 @@ if [ $continue -eq 0 ]; then
     exit 1
 else
     sudo chmod +x minecraft_server_downloader.sh
-    echo java -Xmx128G -Xms2G -jar server.jar nogui pause>> start.bat
+    echo java -Xmx8G -Xms2G -jar server.jar nogui pause>> start.bat
     echo eula=true > eula.txt
     sudo chmod +x start.bat
     sudo ./start.bat
