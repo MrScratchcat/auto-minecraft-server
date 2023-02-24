@@ -97,6 +97,7 @@ if [ $continue -eq 0 ]; then
     echo "you didnt made a choice, stop script" 
     exit 1
 else
+    sudo chown -R $USER: $HOME
     sudo chmod +x minecraft_server_downloader.sh
     echo java -Xmx8G -Xms2G -jar server.jar nogui pause>> start.bat
     echo eula=true > eula.txt
