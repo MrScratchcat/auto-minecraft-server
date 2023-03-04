@@ -1,4 +1,4 @@
-
+#!/bin/bash
 sudo apt update 
 sudo apt install wget dialog -y
 continue=0
@@ -99,7 +99,8 @@ if [ $continue -eq 0 ]; then
 else
     sudo chown -R $USER: $HOME
     sudo chmod +x minecraft_server_downloader.sh
-    echo java -Xmx8G -Xms2G -jar server.jar nogui pause>> start.bat
+    mem=$(free -h | grep -i mem | awk '{print $2+0}')
+    echo java -Xmx${mem}G -Xms1G -jar server.jar nogui pause>> start.bat
     echo eula=true > eula.txt
     sudo chmod +x start.bat
     sudo ./start.bat
