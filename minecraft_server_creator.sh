@@ -99,8 +99,10 @@ if [ $continue -eq 0 ]; then
 else
     sudo chown -R $USER: $HOME
     sudo chmod +x minecraft_server_downloader.sh
-    mem=$(free -h | grep -i mem | awk '{print $2+0}')
-    echo java -Xmx${mem}G -Xms1G -jar server.jar nogui pause>> start.bat
+    mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
+    echo "Allocating $mem GB of RAM for Minecraft server."
+    java -Xmx${mem}G -Xms1G -jar server.jar nogui
+
     echo eula=true > eula.txt
     sudo chmod +x start.bat
     sudo ./start.bat
