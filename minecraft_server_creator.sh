@@ -100,8 +100,10 @@ else
     sudo chown -R $USER: $HOME
     sudo chmod +x minecraft_server_downloader.sh
     mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
-    echo "Allocating $mem GB of RAM for Minecraft server."
-    java -Xmx${mem}G -Xms1G -jar server.jar nogui
+    echo " "
+    echo "Allocating ${mem}GB of RAM for Minecraft server."
+    echo " "
+    echo "java -Xmx${mem}G -Xms1G -jar server.jar nogui" > start.bat
 
     echo eula=true > eula.txt
     sudo chmod +x start.bat
