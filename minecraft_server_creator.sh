@@ -23,29 +23,21 @@ do
     1)
         #1.19.3
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://piston-data.mojang.com/v1/objects/c9df48efed58511cdd0213c56b9013a7b5c9ac1f/server.jar
         ;;
     2)
         #1.19.2
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
         ;;
     3)
         #1.18.2
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
         ;;
     4)
         #1.17.1
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
         ;;
     5)
@@ -59,36 +51,26 @@ do
     6)
         #1.19.3 fabric
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.19.3/0.14.11/0.11.1/server/jar
         ;;
     7)   
         #1.19.2 fabric
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.19.2/0.14.11/0.11.1/server/jar
         ;;
     8)
         #1.18.2 fabric
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.18.2/0.14.11/0.11.1/server/jar
         ;;
     9)
         #1.17.1 fabric
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.17.1/0.14.11/0.11.1/server/jar
         ;;
     10)
         #1.16.5 fabric
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
         wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.11/0.11.1/server/jar
         ;;
     esac
@@ -245,6 +227,9 @@ text-filtering-config=
 use-native-transport=true
 view-distance=${distance}
 white-list=false" > server.properties
+    
+    sudo apt install openjdk-19-jdk -y
+    sudo apt upgrade -y
 
     mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
     echo " "
