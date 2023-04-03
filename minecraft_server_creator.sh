@@ -25,6 +25,7 @@ do
         #1.19.4
         continue=1
         wget -O server.jar https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
+	;;
     1)
         #1.19.3
         continue=1
