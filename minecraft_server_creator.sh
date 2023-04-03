@@ -4,6 +4,7 @@ sudo apt install wget dialog -y
 continue=0
 cmd=(dialog --menu "Please Select the version you want to install:" 22 76 16)
 options=(
+0 "version 1.19.4"
 1 "version 1.19.3"
 2 "Version 1.19.2"
 3 "Version 1.18.2"
@@ -20,6 +21,10 @@ clear
 for choice in $choices
 do
     case $choice in
+    0)
+        #1.19.4
+        continue=1
+        wget -O server.jar https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
     1)
         #1.19.3
         continue=1
@@ -166,6 +171,43 @@ do
 
     esac
 done
+cmd=(dialog --menu "do you want it to start the server at startup?:" 22 76 16)
+options=(
+1 "yes"
+2 "no"
+)
+choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+for choice in $choices
+do
+    case $choice in
+    1)
+        #yes
+        continue=1
+        location=$(pwd | grep .)
+
+    
+	sudo echo "[Unit]
+	After=network.target
+
+	[Service]
+	Type=simple
+	ExecStart=/usr/local/bin/start.sh
+
+	[Install]
+	WantedBy=default.target
+	" > minecraft.service
+
+	sudo cp minecraft.service /etc/systemd/system
+	sudo rm minecraft.service
+	sudo chmod +x /etc/systemd/system/minecraft.service
+        ;;
+    2)
+        #no
+        continue=1
+        ;;
+    esac
+done
 if [ $continue -eq 0 ]; then
     echo "you didnt made a choice, stop script" 
     exit 1
@@ -236,9 +278,21 @@ white-list=false" > server.properties
     echo "Allocating ${mem}GB of RAM for Minecraft server."
     echo " "
     echo "java -Xmx${mem}G -Xms1G -jar server.jar nogui" > start.bat
+    echo "java -Xmx${mem}G -Xms1G -jar server.jar nogui" > start.sh
 
     echo eula=true > eula.txt
     sudo chmod +x start.bat
     sudo ./start.bat
     sudo chown -R $USER: $HOME
+    sudo echo "#!/bin/bash
+    cd ${location}
+    sudo ./start.bat" > start.sh
+    sudo chmod +x start.sh
+    sudo cp start.sh /usr/local/bin
+    sudo systemctl daemon-reload
+	sudo systemctl enable minecraft.service
+	sudo systemctl start minecraft.service
+    sudo rm start.sh
+    cd ${location}
+    echo "to stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
 fi
