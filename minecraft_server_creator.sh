@@ -1,6 +1,6 @@
 #!/bin/bash
 sudo apt update 
-sudo apt install wget dialog -y
+sudo apt install dialog -y
 continue=0
 cmd=(dialog --menu "Please Select the version you want to install:" 22 76 16)
 options=(
@@ -10,11 +10,12 @@ options=(
 3 "Version 1.18.2"
 4 "Version 1.17.1"
 5 "Version 1.16.5"
-6 "version 1.19.3 fabric"
-7 "Version 1.19.2 fabric"
-8 "Version 1.18.2 fabric"
-9 "Version 1.17.1 fabric"
-10 "Version 1.16.5 fabric"
+6 "version 1.19.4 fabric"
+7 "version 1.19.3 fabric"
+8 "Version 1.19.2 fabric"
+9 "Version 1.18.2 fabric"
+10 "Version 1.17.1 fabric"
+11 "Version 1.16.5 fabric"
 )
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
@@ -24,62 +25,65 @@ do
     0)
         #1.19.4
         continue=1
-        wget -O server.jar https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
-	;;
+        server=https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
+        ;;
     1)
         #1.19.3
         continue=1
-        wget -O server.jar https://piston-data.mojang.com/v1/objects/c9df48efed58511cdd0213c56b9013a7b5c9ac1f/server.jar
+        server=https://piston-data.mojang.com/v1/objects/c9df48efed58511cdd0213c56b9013a7b5c9ac1f/server.jar
         ;;
     2)
         #1.19.2
         continue=1
-        wget -O server.jar https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
+        server=https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
         ;;
     3)
         #1.18.2
         continue=1
-        wget -O server.jar https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
+        server=https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
         ;;
     4)
         #1.17.1
         continue=1
-        wget -O server.jar https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
+        server=https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
         ;;
     5)
         #1.16.5
         continue=1
-        sudo apt install openjdk-19-jdk -y
-        sudo apt upgrade -y
-        wget -O server.jar https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar
+        server=https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar
         ;;
-        
+
     6)
+        #1.19.4 fabric
+        continue=1
+        server=https://meta.fabricmc.net/v2/versions/loader/1.19.4/0.14.19/0.11.2/server/jar
+        ;;  
+    7)
         #1.19.3 fabric
         continue=1
-        wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.19.3/0.14.11/0.11.1/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.19.3/0.14.19/0.11.2/server/jar
         ;;
-    7)   
+    8)   
         #1.19.2 fabric
         continue=1
-        wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.19.2/0.14.11/0.11.1/server/jar
-        ;;
-    8)
-        #1.18.2 fabric
-        continue=1
-        wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.18.2/0.14.11/0.11.1/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.19.2/0.14.19/0.11.2/server/jar
         ;;
     9)
-        #1.17.1 fabric
+        #1.18.2 fabric
         continue=1
-        wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.17.1/0.14.11/0.11.1/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.18.2/0.14.19/0.11.2/server/jar
         ;;
     10)
+        #1.17.1 fabric
+        continue=1
+        server=https://meta.fabricmc.net/v2/versions/loader/1.17.1/0.14.19/0.11.2/server/jar
+        ;;
+    11)
         #1.16.5 fabric
         continue=1
-        wget -O server.jar https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.11/0.11.1/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.19/0.11.2/server/jar
         ;;
-    esac
+        esac
 done
 cmd=(dialog --menu "Please Select your difficulty:" 22 76 16)
 options=(
@@ -193,7 +197,7 @@ do
 
 	[Service]
 	Type=simple
-	ExecStart=/usr/local/bin/start.sh
+	ExecStart=${location}/start.bat
 
 	[Install]
 	WantedBy=default.target
@@ -209,6 +213,11 @@ do
         ;;
     esac
 done
+clear
+read -p "Enter your server name: " name
+clear
+sudo apt install wget -y
+wget -O server.jar ${server}
 if [ $continue -eq 0 ]; then
     echo "you didnt made a choice, stop script" 
     exit 1
@@ -243,7 +252,7 @@ max-chained-neighbor-updates=1000000
 max-players=20
 max-tick-time=60000
 max-world-size=29999984
-motd=A Minecraft Server
+motd=A ${name}
 network-compression-threshold=256
 online-mode=true
 op-permission-level=4
@@ -279,17 +288,10 @@ white-list=false" > server.properties
     echo "Allocating ${mem}GB of RAM for Minecraft server."
     echo " "
     echo "java -Xmx${mem}G -Xms1G -jar server.jar nogui" > start.bat
-    echo "java -Xmx${mem}G -Xms1G -jar server.jar nogui" > start.sh
-
     echo eula=true > eula.txt
     sudo chmod +x start.bat
     sudo ./start.bat
     sudo chown -R $USER: $HOME
-    sudo echo "#!/bin/bash
-    cd ${location}
-    sudo ./start.bat" > start.sh
-    sudo chmod +x start.sh
-    sudo cp start.sh /usr/local/bin
     sudo systemctl daemon-reload
 	sudo systemctl enable minecraft.service
 	sudo systemctl start minecraft.service
