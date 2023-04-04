@@ -295,7 +295,6 @@ white-list=false" > server.properties
     sudo systemctl daemon-reload
 	sudo systemctl enable minecraft.service
 	sudo systemctl start minecraft.service
-    sudo rm start.sh
     cd ${location}
     echo "to stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
 fi
