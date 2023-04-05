@@ -189,6 +189,7 @@ do
     1)
         #yes
         continue=1
+        mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
         location=$(pwd | grep .)
 
     
@@ -197,10 +198,11 @@ do
 
 	[Service]
 	Type=simple
-	ExecStart=${location}/start.bat
+    ExecStart=bash /usr/local/bin/start.sh
 
 	[Install]
 	WantedBy=default.target
+
 	" > minecraft.service
 
 	sudo cp minecraft.service /etc/systemd/system
@@ -282,19 +284,24 @@ white-list=false" > server.properties
     
     sudo apt install openjdk-19-jdk -y
     sudo apt upgrade -y
-
-    mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
     echo " "
     echo "Allocating ${mem}GB of RAM for Minecraft server."
     echo " "
-    echo "java -Xmx${mem}G -Xms1G -jar server.jar nogui" > start.bat
+    echo "java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.bat
     echo eula=true > eula.txt
     sudo chmod +x start.bat
     sudo ./start.bat
     sudo chown -R $USER: $HOME
+    sudo echo "#!/bin/bash
+    cd ${location}
+    sudo ./start.bat" > start.sh
+    sudo chmod +x start.sh
+    sudo cp start.sh /usr/local/bin
     sudo systemctl daemon-reload
 	sudo systemctl enable minecraft.service
 	sudo systemctl start minecraft.service
+    sudo rm start.sh
     cd ${location}
+    clear
     echo "to stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
 fi
