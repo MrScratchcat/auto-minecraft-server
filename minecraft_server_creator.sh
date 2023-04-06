@@ -1,4 +1,9 @@
 #!/bin/bash
+location=$(pwd | grep .)
+cd
+sudo rm /etc/systemd/system/minecraft.service
+sudo rm /usr/local/bin/start.sh
+cd ${location}
 sudo apt update 
 sudo apt install dialog -y
 continue=0
@@ -176,21 +181,12 @@ do
 
     esac
 done
-cmd=(dialog --menu "do you want it to start the server at startup?:" 22 76 16)
-options=(
-1 "yes"
-2 "no"
-)
-choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+dialog --yesno "Do you want your minecraft server to start at startup?" 7 40
+startup=$?
 clear
-for choice in $choices
-do
-    case $choice in
-    1)
-        #yes
-        continue=1
-        mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
-        location=$(pwd | grep .)
+if [ $startup == 0 ]
+then
+    location=$(pwd | grep .)
 
     
 	sudo echo "[Unit]
@@ -198,25 +194,25 @@ do
 
 	[Service]
 	Type=simple
-    ExecStart=bash /usr/local/bin/start.sh
+	ExecStart=/usr/local/bin/start.sh
 
 	[Install]
 	WantedBy=default.target
-
 	" > minecraft.service
 
 	sudo cp minecraft.service /etc/systemd/system
 	sudo rm minecraft.service
 	sudo chmod +x /etc/systemd/system/minecraft.service
-        ;;
-    2)
-        #no
-        continue=1
-        ;;
-    esac
-done
+elif [ $startup == 1 ]
+then 
+    echo "Your minecraft server wont start at startup!"
+fi
 clear
-read -p "Enter your server name: " name
+dialog --inputbox "Put your name:" 8 60 2>name.txt
+name=$(cat name.txt)
+rm name.txt
+clear
+echo "$name"
 clear
 sudo apt install wget -y
 wget -O server.jar ${server}
@@ -282,6 +278,7 @@ use-native-transport=true
 view-distance=${distance}
 white-list=false" > server.properties
     
+    mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
     sudo apt install openjdk-19-jdk -y
     sudo apt upgrade -y
     echo " "
