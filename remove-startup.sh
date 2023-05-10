@@ -1,4 +1,4 @@
 #!/bin/bash
 cd
 sudo rm /etc/systemd/system/minecraft.service
-sudo rm /usr/local/bin/start.sh
+sudo rm /usr/local/bin/autostart.sh
