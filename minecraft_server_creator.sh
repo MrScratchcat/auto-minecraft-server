@@ -1,11 +1,24 @@
 #!/bin/bash
+mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
+
+#internet check
+echo "checking for internet connection"
+echo ""
+wget -q --spider https://github.com/MrScratchcat/auto-minecraft-server
+if [ $? -eq 0 ]; then
+    echo "Your Online"
+else
+    echo "You are Offline please connet to the internet and try again!"
+    exit
+fi
+
+#variable for the location you are in
 location=$(pwd | grep .)
-cd
-sudo rm /etc/systemd/system/minecraft.service
-sudo rm /usr/local/bin/start.sh
-cd ${location}
+
 sudo apt update 
 sudo apt install dialog -y
+
+#choice for minecraft version
 continue=0
 cmd=(dialog --menu "Please Select the version you want to install:" 22 76 16)
 options=(
@@ -90,6 +103,8 @@ do
         ;;
         esac
 done
+
+#difficulty selecton
 cmd=(dialog --menu "Please Select your difficulty:" 22 76 16)
 options=(
 1 "Easy"
@@ -119,6 +134,8 @@ do
 
     esac
 done
+
+#render distance selection
 cmd=(dialog --menu "Please Select your render distance:" 22 76 16)
 options=(
 1 "10"
@@ -148,6 +165,8 @@ do
 
     esac
 done
+
+#gamemode selection
 cmd=(dialog --menu "Please Select your gamemode:" 22 76 16)
 options=(
 1 "Survival"
@@ -181,20 +200,25 @@ do
 
     esac
 done
+
+#startup selection
 dialog --yesno "Do you want your minecraft server to start at startup?" 7 40
 startup=$?
 clear
 if [ $startup == 0 ]
 then
-    location=$(pwd | grep .)
-
+    cd
+    systemctl stop minecraft.service
+    sudo rm /etc/systemd/system/minecraft.service
+    sudo rm /usr/local/bin/autostart.sh
+    cd ${location}
     
 	sudo echo "[Unit]
 	After=network.target
 
 	[Service]
 	Type=simple
-	ExecStart=/usr/local/bin/start.sh
+	ExecStart=/usr/local/bin/autostart.sh
 
 	[Install]
 	WantedBy=default.target
@@ -203,17 +227,50 @@ then
 	sudo cp minecraft.service /etc/systemd/system
 	sudo rm minecraft.service
 	sudo chmod +x /etc/systemd/system/minecraft.service
+
+    sudo echo "#!/bin/bash
+    cd ${location}
+    java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > autostart.sh
+    sudo chmod +x autostart.sh
+    sudo cp autostart.sh /usr/local/bin
+
 elif [ $startup == 1 ]
 then 
     echo "Your minecraft server wont start at startup!"
 fi
+#choice for start if script is done 
+dialog --yesno "Do you want to start as soon the script is done?" 7 40
+start=$?
 clear
-dialog --inputbox "Put your name:" 8 60 2>name.txt
+
+#choice for the server port
+dialog --inputbox "put in port number empty for default:" 8 60 2>port.txt
+port=$(cat port.txt)
+rm port.txt
+if [ -z "$port" ]; then
+    port=25565
+fi
+echo $port
+clear
+
+#choice for server name
+dialog --inputbox "Put in the name of your server:" 8 60 2>name.txt
 name=$(cat name.txt)
 rm name.txt
+if [ -z "$name" ]; then
+name="a very cool minecraft server"
+fi
 clear
 echo "$name"
+
+#choice for seed
+dialog --inputbox "seed empty for random:" 8 60 2>seed.txt
+seed=$(cat seed.txt)
+rm seed.txt
 clear
+echo "$seed"
+
+
 sudo apt install wget -y
 wget -O server.jar ${server}
 if [ $continue -eq 0 ]; then
@@ -221,84 +278,90 @@ if [ $continue -eq 0 ]; then
     exit 1
 else
     echo "#Minecraft server properties
-allow-flight=true
-allow-nether=true
-broadcast-console-to-ops=true
-broadcast-rcon-to-ops=true
-difficulty=${difficulty}
-enable-command-block=false
-enable-jmx-monitoring=false
-enable-query=false
-enable-rcon=false
-enable-status=true
-enforce-secure-profile=true
-enforce-whitelist=false
-entity-broadcast-range-percentage=100
-force-gamemode=false
-function-permission-level=2
-gamemode=${gamemode}
-generate-structures=true
-generator-settings={}
-hardcore=${hardcore}
-hide-online-players=false
-initial-disabled-packs=
-initial-enabled-packs=vanilla
-level-name=world
-level-seed=
-level-type=minecraft\:normal
-max-chained-neighbor-updates=1000000
-max-players=20
-max-tick-time=60000
-max-world-size=29999984
-motd=A ${name}
-network-compression-threshold=256
-online-mode=true
-op-permission-level=4
-player-idle-timeout=0
-prevent-proxy-connections=false
-pvp=true
-query.port=25565
-rate-limit=0
-rcon.password=
-rcon.port=25575
-require-resource-pack=false
-resource-pack=
-resource-pack-prompt=
-resource-pack-sha1=
-server-ip=
-server-port=25565
-simulation-distance=${distance}
-spawn-animals=true
-spawn-monsters=true
-spawn-npcs=true
-spawn-protection=16
-sync-chunk-writes=true
-text-filtering-config=
-use-native-transport=true
-view-distance=${distance}
-white-list=false" > server.properties
-    
-    mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
+    allow-flight=true
+    allow-nether=true
+    broadcast-console-to-ops=true
+    broadcast-rcon-to-ops=true
+    difficulty=${difficulty}
+    enable-command-block=false
+    enable-jmx-monitoring=false
+    enable-query=false
+    enable-rcon=false
+    enable-status=true
+    enforce-secure-profile=true
+    enforce-whitelist=false
+    entity-broadcast-range-percentage=100
+    force-gamemode=false
+    function-permission-level=2
+    gamemode=${gamemode}
+    generate-structures=true
+    generator-settings={}
+    hardcore=${hardcore}
+    hide-online-players=false
+    initial-disabled-packs=
+    initial-enabled-packs=vanilla
+    level-name=world
+    level-seed=${seed}
+    level-type=minecraft\:normal
+    max-chained-neighbor-updates=1000000
+    max-players=20
+    max-tick-time=60000
+    max-world-size=29999984
+    motd=${name}
+    network-compression-threshold=256
+    online-mode=true
+    op-permission-level=4
+    player-idle-timeout=0
+    prevent-proxy-connections=false
+    pvp=true
+    query.port=25565
+    rate-limit=0
+    rcon.password=
+    rcon.port=25575
+    require-resource-pack=false
+    resource-pack=
+    resource-pack-prompt=
+    resource-pack-sha1=
+    server-ip=
+    server-port=${port}
+    simulation-distance=${distance}
+    spawn-animals=true
+    spawn-monsters=true
+    spawn-npcs=true
+    spawn-protection=0
+    sync-chunk-writes=true
+    text-filtering-config=
+    use-native-transport=true
+    view-distance=${distance}
+    white-list=false" > server.properties
+
     sudo apt install openjdk-19-jdk -y
     sudo apt upgrade -y
     echo " "
     echo "Allocating ${mem}GB of RAM for Minecraft server."
     echo " "
-    echo "java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.bat
+    echo "systemctl stop minecraft.service && java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.sh
     echo eula=true > eula.txt
-    sudo chmod +x start.bat
-    sudo ./start.bat
-    sudo chown -R $USER: $HOME
-    sudo echo "#!/bin/bash
-    cd ${location}
-    sudo ./start.bat" > start.sh
     sudo chmod +x start.sh
-    sudo cp start.sh /usr/local/bin
-    sudo systemctl daemon-reload
-	sudo systemctl enable minecraft.service
-	sudo systemctl start minecraft.service
-    sudo rm start.sh
-    cd ${location}
+
+    if [ $start == 0 ]
+    then
+        java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui
+        
+    elif [ $start == 1 ]
+    then 
+        echo "didnt start"
+    fi
+        
+    sudo chown -R $USER: $HOME
     clear
-    echo "to stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
+    echo "all done to start your server type: bash start.sh"
+    if [ $startup == 0 ]
+    then 
+        sudo systemctl enable minecraft.service
+        sudo systemctl daemon-reload
+        sudo systemctl start minecraft.service
+        sudo rm autostart.sh
+        echo "to stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
+    fi
 fi
