@@ -2,13 +2,10 @@
 mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
 
 #internet check
-echo "checking for internet connection"
-echo ""
 wget -q --spider https://github.com/MrScratchcat/auto-minecraft-server
 if [ $? -eq 0 ]; then
-    echo "Your Online"
+    echo " "
 else
-    echo "You are Offline please connet to the internet and try again!"
     exit
 fi
 
@@ -110,6 +107,7 @@ options=(
 1 "Easy"
 2 "Normal"
 3 "Hard"
+4 "Peaceful"
 )
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
@@ -130,6 +128,11 @@ do
         #hard
         continue=1
         difficulty=hard
+        ;;
+    4)
+        #Peaceful
+        continue=1
+        difficulty=peaceful
         ;;
 
     esac
@@ -250,7 +253,6 @@ rm port.txt
 if [ -z "$port" ]; then
     port=25565
 fi
-echo $port
 clear
 
 #choice for server name
@@ -258,110 +260,111 @@ dialog --inputbox "Put in the name of your server:" 8 60 2>name.txt
 name=$(cat name.txt)
 rm name.txt
 if [ -z "$name" ]; then
-name="a very cool minecraft server"
+   name="a very cool minecraft server"
 fi
 clear
-echo "$name"
 
 #choice for seed
 dialog --inputbox "seed empty for random:" 8 60 2>seed.txt
 seed=$(cat seed.txt)
 rm seed.txt
 clear
-echo "$seed"
 
+sudo ufw allow ${port}
 
 sudo apt install wget -y
 wget -O server.jar ${server}
-if [ $continue -eq 0 ]; then
-    echo "you didnt made a choice, stop script" 
-    exit 1
-else
-    echo "#Minecraft server properties
-    allow-flight=true
-    allow-nether=true
-    broadcast-console-to-ops=true
-    broadcast-rcon-to-ops=true
-    difficulty=${difficulty}
-    enable-command-block=false
-    enable-jmx-monitoring=false
-    enable-query=false
-    enable-rcon=false
-    enable-status=true
-    enforce-secure-profile=true
-    enforce-whitelist=false
-    entity-broadcast-range-percentage=100
-    force-gamemode=false
-    function-permission-level=2
-    gamemode=${gamemode}
-    generate-structures=true
-    generator-settings={}
-    hardcore=${hardcore}
-    hide-online-players=false
-    initial-disabled-packs=
-    initial-enabled-packs=vanilla
-    level-name=world
-    level-seed=${seed}
-    level-type=minecraft\:normal
-    max-chained-neighbor-updates=1000000
-    max-players=20
-    max-tick-time=60000
-    max-world-size=29999984
-    motd=${name}
-    network-compression-threshold=256
-    online-mode=true
-    op-permission-level=4
-    player-idle-timeout=0
-    prevent-proxy-connections=false
-    pvp=true
-    query.port=25565
-    rate-limit=0
-    rcon.password=
-    rcon.port=25575
-    require-resource-pack=false
-    resource-pack=
-    resource-pack-prompt=
-    resource-pack-sha1=
-    server-ip=
-    server-port=${port}
-    simulation-distance=${distance}
-    spawn-animals=true
-    spawn-monsters=true
-    spawn-npcs=true
-    spawn-protection=0
-    sync-chunk-writes=true
-    text-filtering-config=
-    use-native-transport=true
-    view-distance=${distance}
-    white-list=false" > server.properties
 
-    sudo apt install openjdk-19-jdk -y
-    sudo apt upgrade -y
-    echo " "
-    echo "Allocating ${mem}GB of RAM for Minecraft server."
-    echo " "
-    echo "systemctl stop minecraft.service && java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.sh
-    echo eula=true > eula.txt
-    sudo chmod +x start.sh
+echo "#Minecraft server properties
+allow-flight=true
+allow-nether=true
+broadcast-console-to-ops=true
+broadcast-rcon-to-ops=true
+difficulty=${difficulty}
+enable-command-block=false
+enable-jmx-monitoring=false
+enable-query=false
+enable-rcon=false
+enable-status=true
+enforce-secure-profile=true
+enforce-whitelist=false
+entity-broadcast-range-percentage=100
+force-gamemode=false
+function-permission-level=2
+gamemode=${gamemode}
+generate-structures=true
+generator-settings={}
+hardcore=${hardcore}
+hide-online-players=false
+initial-disabled-packs=
+initial-enabled-packs=vanilla
+level-name=world
+level-seed=${seed}
+level-type=minecraft:normal
+max-chained-neighbor-updates=1000000
+max-players=20
+max-tick-time=60000
+max-world-size=29999984
+motd=${name}
+network-compression-threshold=256
+online-mode=true
+op-permission-level=4
+player-idle-timeout=0
+prevent-proxy-connections=false
+pvp=true
+query.port=25565
+rate-limit=0
+rcon.password=
+rcon.port=25575
+require-resource-pack=false
+resource-pack=
+resource-pack-prompt=
+resource-pack-sha1=
+server-ip=
+server-port=${port}
+simulation-distance=${distance}
+spawn-animals=true
+spawn-monsters=true
+spawn-npcs=true
+spawn-protection=0
+sync-chunk-writes=true
+text-filtering-config=
+use-native-transport=true
+view-distance=${distance}
+white-list=false" > server.properties
 
-    if [ $start == 0 ]
-    then
-        java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui
-        
-    elif [ $start == 1 ]
-    then 
-        echo "didnt start"
-    fi
-        
-    sudo chown -R $USER: $HOME
-    clear
-    echo "all done to start your server type: bash start.sh"
-    if [ $startup == 0 ]
-    then 
-        sudo systemctl enable minecraft.service
-        sudo systemctl daemon-reload
-        sudo systemctl start minecraft.service
-        sudo rm autostart.sh
-        echo "to stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
-    fi
+sudo apt install openjdk-19-jdk -y
+sudo apt upgrade -y
+echo " "
+echo "Allocating ${mem}GB of RAM for Minecraft server."
+echo " "
+echo eula=true > eula.txt
+sudo chmod +x start.sh
+
+if [ $start == 0 ]
+then
+    java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui
+    
+elif [ $start == 1 ]
+then 
+    echo "didnt start"
 fi
+        
+sudo chown -R $USER: $HOME
+clear
+echo "All done to start your server type: bash start.sh"
+
+if [ $startup == 0 ]
+then 
+    sudo systemctl enable minecraft.service
+    sudo systemctl daemon-reload
+    sudo rm autostart.sh
+    echo "To stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
+    echo "systemctl stop minecraft.service && java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.sh
+    sudo chmod +x start.sh
+elif [ $startup == 1 ]
+then
+  echo "java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.sh
+  sudo chmod +x start.sh
+fi
+
