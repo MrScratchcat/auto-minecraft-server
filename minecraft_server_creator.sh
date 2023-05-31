@@ -1,16 +1,18 @@
 #!/bin/bash
 mem=$(free -h | grep -i mem | awk '{print int($2 + 0.5)}')
 
-#internet check
-wget -q --spider https://github.com/MrScratchcat/auto-minecraft-server
-if [ $? -eq 0 ]; then
-    echo " "
-else
-    exit
-fi
-
 #variable for the location you are in
 location=$(pwd | grep .)
+
+#internet check
+echo "Checking for internet connection...."
+wget -q --spider https://github.com/MrScratchcat/auto-minecraft-server
+if [ $? -eq 0 ]; then
+    echo "connected!"
+else
+    echo "You have no internet connection!"
+    exit
+fi
 
 sudo apt update 
 sudo apt install dialog -y
@@ -31,6 +33,12 @@ options=(
 9 "Version 1.18.2 fabric"
 10 "Version 1.17.1 fabric"
 11 "Version 1.16.5 fabric"
+12 "version 1.19.4 forge"
+13 "version 1.19.3 forge"
+14 "version 1.19.2 forge"
+15 "version 1.18.2 forge"
+16 "version 1.17.1 forge"
+17 "version 1.16.5 forge"
 )
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
@@ -98,6 +106,43 @@ do
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.19/0.11.2/server/jar
         ;;
+    12)
+        #1.19.4 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.4-45.0.66/forge-1.19.4-45.0.66-installer.jar
+        ;;
+    13)
+        #1.19.3 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.3-44.1.23/forge-1.19.3-44.1.23-installer.jar
+        ;;
+    14)
+        #1.19.2 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.2.12/forge-1.19.2-43.2.12-installer.jar
+        ;;
+    15)
+        #1.18.2 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.18.2-40.2.8/forge-1.18.2-40.2.8-installer.jar
+        ;;
+    16)
+        #1.17.1 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.17.1-37.1.1/forge-1.17.1-37.1.1-installer.jar
+        ;;
+    17)
+        #1.16.5 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar
+        ;;
+
         esac
 done
 
@@ -204,44 +249,22 @@ do
     esac
 done
 
+#vanilla or forge start
+if [ $forge == true ]
+then 
+    starter=" java @user_jvm_args.txt @libraries/net/minecraftforge/forge/1.19.2-43.2.12/unix_args.txt "$@" "
+elif [ -z "$forge" ]
+then 
+    starter=$(java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui)
+fi
+
+
 #startup selection
 dialog --yesno "Do you want your minecraft server to start at startup?" 7 40
 startup=$?
 clear
-if [ $startup == 0 ]
-then
-    cd
-    systemctl stop minecraft.service
-    sudo rm /etc/systemd/system/minecraft.service
-    sudo rm /usr/local/bin/autostart.sh
-    cd ${location}
-    
-	sudo echo "[Unit]
-	After=network.target
 
-	[Service]
-	Type=simple
-	ExecStart=/usr/local/bin/autostart.sh
-
-	[Install]
-	WantedBy=default.target
-	" > minecraft.service
-
-	sudo cp minecraft.service /etc/systemd/system
-	sudo rm minecraft.service
-	sudo chmod +x /etc/systemd/system/minecraft.service
-
-    sudo echo "#!/bin/bash
-    cd ${location}
-    java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > autostart.sh
-    sudo chmod +x autostart.sh
-    sudo cp autostart.sh /usr/local/bin
-
-elif [ $startup == 1 ]
-then 
-    echo "Your minecraft server wont start at startup!"
-fi
-#choice for start if script is done 
+#choice for start if script is done
 dialog --yesno "Do you want to start as soon the script is done?" 7 40
 start=$?
 clear
@@ -270,10 +293,26 @@ seed=$(cat seed.txt)
 rm seed.txt
 clear
 
-sudo ufw allow ${port}
+if [ $startup == 0 ]
+then
+    cd
+    systemctl stop minecraft.service
+    sudo rm /etc/systemd/system/minecraft.service
+    sudo rm /usr/local/bin/autostart.sh
+    cd ${location}
+fi
 
-sudo apt install wget -y
-wget -O server.jar ${server}
+sudo ufw allow ${port}
+ 
+sudo apt install default-jdk wget screen openjdk-19-jdk -y
+sudo rm forge*.jar
+if [ $forge == true ]
+then 
+    wget ${server}
+elif [ -z "$forge" ]
+then 
+    wget -O server.jar ${server}
+fi
 
 echo "#Minecraft server properties
 allow-flight=true
@@ -333,21 +372,60 @@ use-native-transport=true
 view-distance=${distance}
 white-list=false" > server.properties
 
-sudo apt install openjdk-19-jdk -y
-sudo apt upgrade -y
 echo " "
 echo "Allocating ${mem}GB of RAM for Minecraft server."
 echo " "
 echo eula=true > eula.txt
+
+echo "${starter}" > start.sh
 sudo chmod +x start.sh
+
+
+if [ $forge == true ]
+then 
+    echo "-Xmx${mem}G" > user_jvm_args.txt
+    java -jar forge*.jar --installServer
+    starter=$(cat run.sh | grep java)
+elif [ -z "$forge" ]
+then 
+    starter=$(java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui)
+fi
+
+if [ $startup == 0 ]
+then
+
+	sudo echo "[Unit]
+	After=network.target
+
+	[Service]
+	Type=simple
+	ExecStart=/usr/local/bin/autostart.sh
+
+	[Install]
+	WantedBy=default.target
+	" > minecraft.service
+
+	sudo cp minecraft.service /etc/systemd/system
+	sudo rm minecraft.service
+	sudo chmod +x /etc/systemd/system/minecraft.service
+
+    sudo echo "#!/bin/bash
+    cd ${location}
+    $starter" > autostart.sh
+    sudo chmod +x autostart.sh
+    sudo cp autostart.sh /usr/local/bin
+
+elif [ $startup == 1 ]
+then 
+    echo "Your minecraft server wont start at startup!"
+fi
 
 if [ $start == 0 ]
 then
-    java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui
-    
+    $starter
 elif [ $start == 1 ]
 then 
-    echo "didnt start"
+    echo "please wait this wont take longer than 20 seconds"
 fi
         
 sudo chown -R $USER: $HOME
@@ -359,12 +437,10 @@ then
     sudo systemctl enable minecraft.service
     sudo systemctl daemon-reload
     sudo rm autostart.sh
-    echo "To stop the server type "systemctl stop minecraft" or to see the server log type "systemctl status minecraft" "
-    echo "systemctl stop minecraft.service && java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.sh
+    echo "To stop the server type "systemctl stop minecraft" or to see if the server is running type "systemctl status minecraft" "
+    echo "systemctl stop minecraft.service && ${starter}" > start.sh
     sudo chmod +x start.sh
 elif [ $startup == 1 ]
 then
-  echo "java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui" > start.sh
   sudo chmod +x start.sh
 fi
-
