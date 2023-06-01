@@ -49,62 +49,74 @@ do
         #1.19.4
         continue=1
         server=https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
+        forge=false
         ;;
     1)
         #1.19.3
         continue=1
         server=https://piston-data.mojang.com/v1/objects/c9df48efed58511cdd0213c56b9013a7b5c9ac1f/server.jar
+        forge=false
         ;;
     2)
         #1.19.2
         continue=1
         server=https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
+        forge=false
         ;;
     3)
         #1.18.2
         continue=1
         server=https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
+        forge=false
         ;;
     4)
         #1.17.1
         continue=1
         server=https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
+        forge=false
         ;;
     5)
         #1.16.5
         continue=1
         server=https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar
+        forge=false
         ;;
 
     6)
         #1.19.4 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.19.4/0.14.19/0.11.2/server/jar
+        forge=false
         ;;  
     7)
         #1.19.3 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.19.3/0.14.19/0.11.2/server/jar
+        forge=false
         ;;
     8)   
         #1.19.2 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.19.2/0.14.19/0.11.2/server/jar
+        forge=false
         ;;
     9)
         #1.18.2 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.18.2/0.14.19/0.11.2/server/jar
+        forge=false
         ;;
     10)
         #1.17.1 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.17.1/0.14.19/0.11.2/server/jar
+        forge=false
         ;;
     11)
         #1.16.5 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.19/0.11.2/server/jar
+        forge=false
         ;;
     12)
         #1.19.4 forge
@@ -249,16 +261,6 @@ do
     esac
 done
 
-#vanilla or forge start
-if [ $forge == true ]
-then 
-    starter=" java @user_jvm_args.txt @libraries/net/minecraftforge/forge/1.19.2-43.2.12/unix_args.txt "$@" "
-elif [ -z "$forge" ]
-then 
-    starter=$(java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui)
-fi
-
-
 #startup selection
 dialog --yesno "Do you want your minecraft server to start at startup?" 7 40
 startup=$?
@@ -293,6 +295,7 @@ seed=$(cat seed.txt)
 rm seed.txt
 clear
 
+#deleting the old startup program
 if [ $startup == 0 ]
 then
     cd
@@ -309,7 +312,7 @@ sudo rm forge*.jar
 if [ $forge == true ]
 then 
     wget ${server}
-elif [ -z "$forge" ]
+elif [ $forge == false ]
 then 
     wget -O server.jar ${server}
 fi
@@ -386,9 +389,9 @@ then
     echo "-Xmx${mem}G" > user_jvm_args.txt
     java -jar forge*.jar --installServer
     starter=$(cat run.sh | grep java)
-elif [ -z "$forge" ]
+elif [ $forge == false ]
 then 
-    starter=$(java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui)
+    starter="java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui"
 fi
 
 if [ $startup == 0 ]
@@ -422,7 +425,7 @@ fi
 
 if [ $start == 0 ]
 then
-    $starter
+    ${starter}
 elif [ $start == 1 ]
 then 
     echo "please wait this wont take longer than 20 seconds"
