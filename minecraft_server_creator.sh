@@ -21,24 +21,27 @@ sudo apt install dialog -y
 continue=0
 cmd=(dialog --menu "Please Select the version you want to install:" 22 76 16)
 options=(
-0 "version 1.19.4"
-1 "version 1.19.3"
-2 "Version 1.19.2"
-3 "Version 1.18.2"
-4 "Version 1.17.1"
-5 "Version 1.16.5"
-6 "version 1.19.4 fabric"
-7 "version 1.19.3 fabric"
-8 "Version 1.19.2 fabric"
-9 "Version 1.18.2 fabric"
-10 "Version 1.17.1 fabric"
-11 "Version 1.16.5 fabric"
-12 "version 1.19.4 forge"
-13 "version 1.19.3 forge"
-14 "version 1.19.2 forge"
-15 "version 1.18.2 forge"
-16 "version 1.17.1 forge"
-17 "version 1.16.5 forge"
+0 "version 1.20.1 (Latest!)"
+1 "version 1.19.4"
+2 "version 1.19.3"
+3 "Version 1.19.2"
+4 "Version 1.18.2"
+5 "Version 1.17.1"
+6 "Version 1.16.5"
+7 "version 1.20.1 fabric (Latest!)"
+8 "version 1.19.4 fabric"
+9 "version 1.19.3 fabric"
+10 "Version 1.19.2 fabric"
+11 "Version 1.18.2 fabric"
+12 "Version 1.17.1 fabric"
+13 "Version 1.16.5 fabric"
+14 "version 1.20.1 forge (Latest!)"
+15 "version 1.19.4 forge"
+16 "version 1.19.3 forge"
+17 "version 1.19.2 forge"
+18 "version 1.18.2 forge"
+19 "version 1.17.1 forge"
+20 "version 1.16.5 forge"
 )
 choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
@@ -46,109 +49,126 @@ for choice in $choices
 do
     case $choice in
     0)
+        #1.20.1
+        continue=1
+        server=https://piston-data.mojang.com/v1/objects/84194a2f286ef7c14ed7ce0090dba59902951553/server.jar
+        forge=false
+        ;;
+    1)
         #1.19.4
         continue=1
         server=https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
         forge=false
         ;;
-    1)
+    2)
         #1.19.3
         continue=1
         server=https://piston-data.mojang.com/v1/objects/c9df48efed58511cdd0213c56b9013a7b5c9ac1f/server.jar
         forge=false
         ;;
-    2)
+    3)
         #1.19.2
         continue=1
         server=https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
         forge=false
         ;;
-    3)
+    4)
         #1.18.2
         continue=1
         server=https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
         forge=false
         ;;
-    4)
+    5)
         #1.17.1
         continue=1
         server=https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
         forge=false
         ;;
-    5)
+    6)
         #1.16.5
         continue=1
         server=https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar
         forge=false
         ;;
-
-    6)
+    7)
+        #1.20.1 fabric
+        continue=1
+        server=https://meta.fabricmc.net/v2/versions/loader/1.20.1/0.14.21/0.11.2/server/jar
+        forge=false
+        ;;  
+    8)
         #1.19.4 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.19.4/0.14.19/0.11.2/server/jar
         forge=false
         ;;  
-    7)
+    9)
         #1.19.3 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.19.3/0.14.19/0.11.2/server/jar
         forge=false
         ;;
-    8)   
+    10)   
         #1.19.2 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.19.2/0.14.19/0.11.2/server/jar
         forge=false
         ;;
-    9)
+    11)
         #1.18.2 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.18.2/0.14.19/0.11.2/server/jar
         forge=false
         ;;
-    10)
+    12)
         #1.17.1 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.17.1/0.14.19/0.11.2/server/jar
         forge=false
         ;;
-    11)
+    13)
         #1.16.5 fabric
         continue=1
         server=https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.19/0.11.2/server/jar
         forge=false
         ;;
-    12)
+    14)
+        #1.20.1 forge
+        continue=1
+        forge=true
+        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.0.0/forge-1.20.1-47.0.0-installer.jar
+        ;;
+    15)
         #1.19.4 forge
         continue=1
         forge=true
         server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.4-45.0.66/forge-1.19.4-45.0.66-installer.jar
         ;;
-    13)
+    16)
         #1.19.3 forge
         continue=1
         forge=true
         server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.3-44.1.23/forge-1.19.3-44.1.23-installer.jar
         ;;
-    14)
+    17)
         #1.19.2 forge
         continue=1
         forge=true
         server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.2.12/forge-1.19.2-43.2.12-installer.jar
         ;;
-    15)
+    18)
         #1.18.2 forge
         continue=1
         forge=true
         server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.18.2-40.2.8/forge-1.18.2-40.2.8-installer.jar
         ;;
-    16)
+    19)
         #1.17.1 forge
         continue=1
         forge=true
         server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.17.1-37.1.1/forge-1.17.1-37.1.1-installer.jar
         ;;
-    17)
+    20)
         #1.16.5 forge
         continue=1
         forge=true
