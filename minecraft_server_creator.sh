@@ -102,19 +102,19 @@ do
     8)
         #1.20.6 fabric
         continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.20.6/0.15.11/1.0.1/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.20.6/0.16.5/1.0.1/server/jar
         forge=false
         ;;  
     9)
         #1.20.1 fabric
         continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.20.1/0.14.21/0.11.2/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.20.1/0.16.5/1.0.1/server/jar
         forge=false
         ;;  
     10)
         #1.19.4 fabric
         continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.19.4/0.14.19/0.11.2/server/jar
+        server=https://meta.fabricmc.net/v2/versions/loader/1.19.4/0.16.5/1.0.1/server/jar
         forge=false
         ;;  
     11)
