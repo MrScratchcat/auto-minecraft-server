@@ -14,189 +14,122 @@ else
     exit
 fi
 
-sudo apt update 
-sudo apt install dialog -y
+sudo apt update
+sudo apt install dialog jq curl wget -y
 
-#choice for minecraft version
-continue=0
-cmd=(dialog --menu "Please Select the version you want to install:" 22 76 16)
+#choice for the server type
+cmd=(dialog --menu "Please select the server type you want to install:" 22 76 16)
 options=(
-0 "version 1.20.6 (Latest!)"
-1 "version 1.20.1"
-2 "version 1.19.4"
-3 "version 1.19.3"
-4 "Version 1.19.2"
-5 "Version 1.18.2"
-6 "Version 1.17.1"
-7 "Version 1.16.5"
-8 "version 1.20.6 fabric (Latest!)"
-9 "version 1.20.1 fabric"
-10 "version 1.19.4 fabric"
-11 "version 1.19.3 fabric"
-12 "Version 1.19.2 fabric"
-13 "Version 1.18.2 fabric"
-14 "Version 1.17.1 fabric"
-15 "Version 1.16.5 fabric"
-16 "version 1.20.6 forge (Latest!)"
-17 "version 1.20.1 forge"
-18 "version 1.19.4 forge"
-19 "version 1.19.3 forge"
-20 "version 1.19.2 forge"
-21 "version 1.18.2 forge"
-22 "version 1.17.1 forge"
-23 "version 1.16.5 forge"
+1 "Vanilla"
+2 "Fabric"
+3 "Forge"
+4 "NeoForge"
 )
-choices=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+choice=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
 clear
-for choice in $choices
-do
-    case $choice in
-    0)
-        #1.20.6
-        continue=1
-        server=https://piston-data.mojang.com/v1/objects/145ff0858209bcfc164859ba735d4199aafa1eea/server.jar
-        forge=false
+case $choice in
+    1) type=vanilla ;;
+    2) type=fabric ;;
+    3) type=forge ;;
+    4) type=neoforge ;;
+    *) echo "No server type selected!"; exit 1 ;;
+esac
+
+#fetching all available versions from the official APIs so this script never needs updating
+echo "Fetching all available ${type} versions...."
+installer=false
+case $type in
+    vanilla)
+        manifest=$(curl -s https://piston-meta.mojang.com/mc/game/version_manifest_v2.json)
+        mapfile -t versions < <(echo "$manifest" | jq -r '.versions[] | select(.type=="release") | .id')
         ;;
-    1)
-        #1.20.1
-        continue=1
-        server=https://piston-data.mojang.com/v1/objects/84194a2f286ef7c14ed7ce0090dba59902951553/server.jar
-        forge=false
+    fabric)
+        mapfile -t versions < <(curl -s https://meta.fabricmc.net/v2/versions/game | jq -r '.[] | select(.stable==true) | .version')
         ;;
-    2)
-        #1.19.4
-        continue=1
-        server=https://piston-data.mojang.com/v1/objects/8f3112a1049751cc472ec13e397eade5336ca7ae/server.jar
-        forge=false
+    forge)
+        promos=$(curl -s https://files.minecraftforge.net/net/minecraftforge/forge/promotions_slim.json)
+        mapfile -t versions < <(echo "$promos" | jq -r '.promos | keys[]' | sed 's/-latest$//;s/-recommended$//' | sort -u -rV)
         ;;
-    3)
-        #1.19.3
-        continue=1
-        server=https://piston-data.mojang.com/v1/objects/c9df48efed58511cdd0213c56b9013a7b5c9ac1f/server.jar
-        forge=false
+    neoforge)
+        neoversions=$(curl -s https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge | jq -r '.versions[]')
+        #neoforge versions look like 21.1.77 which means minecraft 1.21.1 (a .0 minor means for example 1.21)
+        mapfile -t versions < <(echo "$neoversions" | awk -F. '{print $1"."$2}' | sort -u -rV | awk -F. '{if ($2 == 0) print "1."$1; else print "1."$1"."$2}')
         ;;
-    4)
-        #1.19.2
-        continue=1
-        server=https://piston-data.mojang.com/v1/objects/f69c284232d7c7580bd89a5a4931c3581eae1378/server.jar
-        forge=false
-        ;;
-    5)
-        #1.18.2
-        continue=1
-        server=https://launcher.mojang.com/v1/objects/c8f83c5655308435b3dcf03c06d9fe8740a77469/server.jar
-        forge=false
-        ;;
-    6)
-        #1.17.1
-        continue=1
-        server=https://launcher.mojang.com/v1/objects/a16d67e5807f57fc4e550299cf20226194497dc2/server.jar
-        forge=false
-        ;;
-    7)
-        #1.16.5
-        continue=1
-        server=https://launcher.mojang.com/v1/objects/1b557e7b033b583cd9f66746b7a9ab1ec1673ced/server.jar
-        forge=false
-        ;;
-    8)
-        #1.20.6 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.20.6/0.16.5/1.0.1/server/jar
-        forge=false
-        ;;  
-    9)
-        #1.20.1 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.20.1/0.16.5/1.0.1/server/jar
-        forge=false
-        ;;  
-    10)
-        #1.19.4 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.19.4/0.16.5/1.0.1/server/jar
-        forge=false
-        ;;  
-    11)
-        #1.19.3 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.19.3/0.14.19/0.11.2/server/jar
-        forge=false
-        ;;
-    12)   
-        #1.19.2 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.19.2/0.14.19/0.11.2/server/jar
-        forge=false
-        ;;
-    13)
-        #1.18.2 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.18.2/0.14.19/0.11.2/server/jar
-        forge=false
-        ;;
-    14)
-        #1.17.1 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.17.1/0.14.19/0.11.2/server/jar
-        forge=false
-        ;;
-    15)
-        #1.16.5 fabric
-        continue=1
-        server=https://meta.fabricmc.net/v2/versions/loader/1.16.5/0.14.19/0.11.2/server/jar
-        forge=false
-        ;;
-    16)
-        #1.20.6 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.6-50.0.22/forge-1.20.6-50.0.22-installer.jar
-        ;;
-    17)
-        #1.20.1 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.20.1-47.0.0/forge-1.20.1-47.0.0-installer.jar
-        ;;
-    18)
-        #1.19.4 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.4-45.0.66/forge-1.19.4-45.0.66-installer.jar
-        ;;
-    19)
-        #1.19.3 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.3-44.1.23/forge-1.19.3-44.1.23-installer.jar
-        ;;
-    20)
-        #1.19.2 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.19.2-43.2.12/forge-1.19.2-43.2.12-installer.jar
-        ;;
-    21)
-        #1.18.2 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.18.2-40.2.8/forge-1.18.2-40.2.8-installer.jar
-        ;;
-    22)
-        #1.17.1 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.17.1-37.1.1/forge-1.17.1-37.1.1-installer.jar
-        ;;
-    23)
-        #1.16.5 forge
-        continue=1
-        forge=true
-        server=https://maven.minecraftforge.net/net/minecraftforge/forge/1.16.5-36.2.39/forge-1.16.5-36.2.39-installer.jar
-        ;;
-    esac
+esac
+
+if [ ${#versions[@]} -eq 0 ]; then
+    echo "Could not fetch the ${type} version list! Please try again later."
+    exit 1
+fi
+
+#choice for minecraft version (menu is built from the fetched list)
+options=()
+i=1
+for v in "${versions[@]}"; do
+    if [ $i -eq 1 ]; then
+        options+=($i "$v (Latest!)")
+    else
+        options+=($i "$v")
+    fi
+    i=$((i+1))
 done
+cmd=(dialog --menu "Please select the ${type} version you want to install:" 22 76 16)
+choice=$("${cmd[@]}" "${options[@]}" 2>&1 >/dev/tty)
+clear
+if [ -z "$choice" ]; then
+    echo "No version selected!"
+    exit 1
+fi
+version=${versions[$((choice-1))]}
+
+#finding the download url for the chosen version
+case $type in
+    vanilla)
+        versionurl=$(echo "$manifest" | jq -r --arg v "$version" '.versions[] | select(.id==$v) | .url')
+        server=$(curl -s "$versionurl" | jq -r '.downloads.server.url // empty')
+        if [ -z "$server" ]; then
+            echo "Mojang does not provide a server jar for ${version}!"
+            exit 1
+        fi
+        ;;
+    fabric)
+        loaderversion=$(curl -s https://meta.fabricmc.net/v2/versions/loader | jq -r '[.[] | select(.stable==true)][0].version')
+        installerversion=$(curl -s https://meta.fabricmc.net/v2/versions/installer | jq -r '[.[] | select(.stable==true)][0].version')
+        server="https://meta.fabricmc.net/v2/versions/loader/${version}/${loaderversion}/${installerversion}/server/jar"
+        ;;
+    forge)
+        installer=true
+        #prefer the recommended forge build, fall back to the latest one
+        forgeversion=$(echo "$promos" | jq -r --arg k "${version}-recommended" '.promos[$k] // empty')
+        if [ -z "$forgeversion" ]; then
+            forgeversion=$(echo "$promos" | jq -r --arg k "${version}-latest" '.promos[$k] // empty')
+        fi
+        if [ -z "$forgeversion" ]; then
+            echo "Could not find a forge build for ${version}!"
+            exit 1
+        fi
+        server="https://maven.minecraftforge.net/net/minecraftforge/forge/${version}-${forgeversion}/forge-${version}-${forgeversion}-installer.jar"
+        ;;
+    neoforge)
+        installer=true
+        #turn the minecraft version back into the neoforge version prefix (1.21.1 -> 21.1)
+        minor=$(echo "$version" | cut -d. -f2)
+        patch=$(echo "$version" | cut -d. -f3)
+        if [ -z "$patch" ]; then
+            patch=0
+        fi
+        #prefer stable builds, fall back to beta builds
+        neoversion=$(echo "$neoversions" | grep "^${minor}\.${patch}\." | grep -v beta | sort -V | tail -1)
+        if [ -z "$neoversion" ]; then
+            neoversion=$(echo "$neoversions" | grep "^${minor}\.${patch}\." | sort -V | tail -1)
+        fi
+        if [ -z "$neoversion" ]; then
+            echo "Could not find a neoforge build for ${version}!"
+            exit 1
+        fi
+        server="https://maven.neoforged.net/releases/net/neoforged/neoforge/${neoversion}/neoforge-${neoversion}-installer.jar"
+        ;;
+esac
 
 #difficulty selecton
 cmd=(dialog --menu "Please Select your difficulty:" 22 76 16)
@@ -213,22 +146,18 @@ do
     case $choice in
     1)
         #easy
-        continue=1
         difficulty=easy
         ;;
     2)
         #normal
-        continue=1
         difficulty=normal
         ;;
     3)
         #hard
-        continue=1
         difficulty=hard
         ;;
     4)
         #Peaceful
-        continue=1
         difficulty=peaceful
         ;;
     esac
@@ -248,17 +177,14 @@ do
     case $choice in
     1)
         #10
-        continue=1
         distance=10
         ;;
     2)
         #16
-        continue=1
         distance=16
         ;;
     3)
         #32
-        continue=1
         distance=32
         ;;
     esac
@@ -278,19 +204,16 @@ do
     case $choice in
     1)
         #survival
-        continue=1
         hardcore=false
         gamemode=survival
         ;;
     2)
         #creative
-        continue=1
         hardcore=false
         gamemode=creative
         ;;
     3)
         #hardcore
-        continue=1
         hardcore=true
         gamemode=hardcore
         difficulty=hard
@@ -343,15 +266,18 @@ then
 fi
 
 sudo ufw allow ${port}
- 
+
 sudo apt install default-jdk wget screen openjdk-21-jdk -y
-sudo rm forge*.jar
-if [ $forge == true ]
-then 
-    wget ${server}
-elif [ $forge == false ]
-then 
+sudo rm -f forge*.jar neoforge*.jar installer.jar
+if [ $installer == true ]
+then
+    wget -O installer.jar ${server}
+else
     wget -O server.jar ${server}
+fi
+if [ $? -ne 0 ]; then
+    echo "The download failed! Please try again later."
+    exit 1
 fi
 
 echo "#Minecraft server properties
@@ -417,19 +343,25 @@ echo "Allocating ${mem}GB of RAM for Minecraft server."
 echo " "
 echo eula=true > eula.txt
 
-echo "${starter}" > start.sh
-sudo chmod +x start.sh
-
-
-if [ $forge == true ]
-then 
+if [ $installer == true ]
+then
+    java -jar installer.jar --installServer
+    rm -f installer.jar installer.jar.log
     echo "-Xmx${mem}G" > user_jvm_args.txt
-    java -jar forge*.jar --installServer
-    starter=$(cat run.sh | grep java)
-elif [ $forge == false ]
-then 
+    if [ -f run.sh ]
+    then
+        starter=$(cat run.sh | grep java)
+    else
+        #older forge versions dont have a run.sh and get started with the forge jar itself
+        serverjar=$(ls forge-*.jar neoforge-*.jar 2>/dev/null | head -1)
+        starter="java -Xmx${mem}G -Xms${mem}G -jar ${serverjar} nogui"
+    fi
+else
     starter="java -Xmx${mem}G -Xms${mem}G -jar server.jar nogui"
 fi
+
+echo "${starter}" > start.sh
+sudo chmod +x start.sh
 
 if [ $startup == 0 ]
 then
@@ -456,7 +388,7 @@ then
     sudo cp autostart.sh /usr/local/bin
 
 elif [ $startup == 1 ]
-then 
+then
     echo "Your minecraft server wont start at startup!"
 fi
 
@@ -464,16 +396,16 @@ if [ $start == 0 ]
 then
     ${starter}
 elif [ $start == 1 ]
-then 
+then
     echo "please wait this wont take longer than 20 seconds"
 fi
-        
+
 sudo chown -R $USER: $HOME
 clear
 echo "All done to start your server type: bash start.sh"
 
 if [ $startup == 0 ]
-then 
+then
     sudo systemctl enable minecraft.service
     sudo systemctl daemon-reload
     sudo rm autostart.sh
